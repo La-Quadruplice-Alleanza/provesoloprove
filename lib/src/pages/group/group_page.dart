@@ -13,11 +13,17 @@ class GroupPage extends StatefulWidget {
 
 class _GroupPageState extends State<GroupPage> {
   bool _visible = true;
+  bool fissa = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Chat"),
+          title: Visibility(
+            visible: _visible,
+            replacement: const Text("Chat"),
+            child: Text("Benvenuto, ${widget.nomeUtente}",
+                style: const TextStyle(fontSize: 20)),
+          ),
         ),
         body: Column(
           children: [
@@ -33,6 +39,7 @@ class _GroupPageState extends State<GroupPage> {
                   const Expanded(
                       child: TextField(
                           decoration: InputDecoration(
+                    hintText: "Scrivi un messaggio...",
                     focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                           width: 2,
@@ -47,7 +54,7 @@ class _GroupPageState extends State<GroupPage> {
         ));
   }
 
-  @override
+  @override //server per far scopearire un widget dopo x secondi
   void initState() {
     super.initState(); //when this route starts, it will execute this code
     Future.delayed(const Duration(seconds: 2), () {
