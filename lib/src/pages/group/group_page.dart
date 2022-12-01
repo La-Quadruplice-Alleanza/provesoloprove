@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:myfirstapp/src/pages/group/msg_model.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class GroupPage extends StatefulWidget {
   final String nomeUtente;
@@ -12,8 +14,54 @@ class GroupPage extends StatefulWidget {
 }
 
 class _GroupPageState extends State<GroupPage> {
+  IO.Socket? socket; //? serve a nonn accettare valori se null
+  List<MsgModel> listMessage =
+      []; //conterrà i messaggi con che tipo di messaggio sono
+  TextEditingController messController = TextEditingController();
   bool _visible = true;
   bool fissa = false;
+  @override //server per far scopearire un widget dopo x secondi
+  void initState() {
+    super
+        .initState(); //questo codice viene eseguito appena avviamo questa schermata
+    connect();
+    Future.delayed(const Duration(seconds: 2), () {
+      //asynchronous delay
+      if (this.mounted) {
+        //checks if widget is still active and not disposed
+        setState(() {
+          //tells the widget builder to rebuild again because ui has updated
+          _visible =
+              false; //update the variable declare this under your class so its accessible for both your widget build and initState which is located under widget build{}
+        });
+      }
+    });
+  }
+
+  void connect() {
+    //connesione a socketio
+    // Dart client
+    socket = IO.io("http://localhost:3000", <String, dynamic>{
+      "transports": ["websocket"],
+      "autoConnect": false,
+    });
+    socket!.connect();
+    socket!.onConnect((_) {
+      print("Client: Connesso");
+    });
+  }
+
+  void sendMsg(String msg, String mandante) {
+    //da rcihaiamre quando premo l;'icona di invio
+    //inviamo la stringa msg
+    socket!.emit('sendMsg', {
+      //oggetto
+      "tipo": "ownMsg",
+      "msg": msg,
+      "mandante": mandante,
+    }); //sendMsg è l'evento, msg la stringa da inviare
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,38 +84,30 @@ class _GroupPageState extends State<GroupPage> {
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                       child: TextField(
-                          decoration: InputDecoration(
-                    hintText: "Scrivi un messaggio...",
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.all(Radius.circular(50))),
-                  ))),
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.send))
+                          controller: messController,
+                          decoration: const InputDecoration(
+                            hintText: "Scrivi un messaggio...",
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 2,
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(50))),
+                          ))),
+                  IconButton(
+                      onPressed: () {
+                        print(messController);
+                        print(widget.nomeUtente);
+                        sendMsg(messController.text, widget.nomeUtente);
+                      },
+                      icon: const Icon(Icons.send))
                 ],
               ),
             )
           ],
         ));
-  }
-
-  @override //server per far scopearire un widget dopo x secondi
-  void initState() {
-    super.initState(); //when this route starts, it will execute this code
-    Future.delayed(const Duration(seconds: 2), () {
-      //asynchronous delay
-      if (this.mounted) {
-        //checks if widget is still active and not disposed
-        setState(() {
-          //tells the widget builder to rebuild again because ui has updated
-          _visible =
-              false; //update the variable declare this under your class so its accessible for both your widget build and initState which is located under widget build{}
-        });
-      }
-    });
   }
 }
 //capisci come metterlo
