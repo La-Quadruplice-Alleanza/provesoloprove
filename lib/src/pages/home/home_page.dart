@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfirstapp/src/pages/group/group_page.dart';
+import 'package:uuid/uuid.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -11,6 +12,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   TextEditingController input = TextEditingController();
   final attivaValidazione = GlobalKey<FormState>();
+  var uuid = Uuid();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,6 +68,7 @@ class _HomePageState extends State<HomePage> {
                                   MaterialPageRoute(
                                     builder: (context) => GroupPage(
                                       nomeUtente: nomeUtente,
+                                      userId: uuid.v1(), //user id unico
                                     ), // richiamiamo la schermata groupPage e passiamo come argomento il nome utente
                                   ));
                             }

@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:myfirstapp/src/pages/foundation/msg_widget/other_msg_widget.dart';
+import 'package:myfirstapp/src/pages/foundation/msg_widget/own_msg_widget.dart';
 import 'msg_model.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class GroupPage extends StatefulWidget {
   final String nomeUtente;
-  const GroupPage({
-    Key? key,
-    required this.nomeUtente, //senza nome non posso arrivare a questa schermata, (serve a flutter per escluderla)
-  });
+  final String userId;
+  const GroupPage(
+      {Key? key,
+      required this.nomeUtente,
+      required this.userId //senza nome non posso arrivare a questa schermata, (serve a flutter per escluderla)
+      });
 
   @override
   State<GroupPage> createState() => _GroupPageState();
@@ -48,16 +52,40 @@ class _GroupPageState extends State<GroupPage> {
     socket!.connect();
     socket!.onConnect((_) {
       print("Client: Connesso");
+      //mettiamo in ascolto il client
+      socket!.on("sendMsgServer", (msg) {
+        print(msg);
+        //compiliamo la lista con i messaggi ricevuti
+        if (msg["uuid"] != widget.userId) {
+          //se il messaggio è dello stesso userid non lo stampo (rischio che stampava in verde anche s enon ero io ad inviarlo)
+          setState(() {
+            //aggiorniamo la ui appena aggiorniamo la lista
+            listMsg.add(MsgModel(
+                msg: msg["msg"], type: msg["type"], mandante: msg["mandante"]));
+          });
+        }
+      });
     });
   }
 
   void sendMsg(String msg, String mandante) {
     //da rcihaiamre quando premo l;'icona di invio
     //inviamo un oggetto
+    MsgModel ownMsg = MsgModel(
+        msg: msg,
+        type: "ownMsg",
+        mandante:
+            mandante); //mettiamo in una lista il contenuto degli oggetti rivecuti e inviati
+    listMsg.add(
+        ownMsg); //possiamo visualizzarli nella gui estrandeli e visualizzandoli
+    setState(() {
+      listMsg; //mutiamo lpo stato della ui seguendo le regole della lista
+    });
     socket!.emit('sendMsg', {
       "type": "ownMsg",
       "msg": msg,
       "mandante": mandante,
+      "uuid": widget.userId,
     }); //sendMsg è l'evento, msg la stringa da inviare
   }
 
@@ -76,8 +104,22 @@ class _GroupPageState extends State<GroupPage> {
         children: [
           //elenco messaggi, quindi colonne
           Expanded(
-            child: Container(),
-          ),
+              //context e index sono i due paramentri ella fuzionme buildcontext
+              child: ListView.builder(
+                  //ritorna un widget della lunghezza Itemcount
+                  itemCount: listMsg.length,
+                  itemBuilder: (context, index) {
+                    //mandiamo alla funzione di visualizzazione in base al tipo di messaggio (mio o di altri)
+                    if (listMsg[index].type == "ownMsg") {
+                      return ownMsgWidget(
+                          mandante: listMsg[index].mandante,
+                          msg: listMsg[index].msg);
+                    } else {
+                      return otherMsgWidget(
+                          mandante: listMsg[index].mandante,
+                          msg: listMsg[index].msg);
+                    }
+                  })),
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
@@ -97,9 +139,10 @@ class _GroupPageState extends State<GroupPage> {
                       suffixIcon: IconButton(
                         onPressed: () {
                           String messaggio = _messController.text;
-                          if
-                          sendMsg(_messController.text, widget.nomeUtente);
-                          _messController.clear();
+                          if (messaggio.isNotEmpty) {
+                            sendMsg(_messController.text, widget.nomeUtente);
+                            _messController.clear();
+                          }
                         },
                         icon: const Icon(
                           Icons.send,
