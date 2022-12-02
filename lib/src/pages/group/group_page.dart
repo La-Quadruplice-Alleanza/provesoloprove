@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myfirstapp/src/pages/group/msg_model.dart';
+import 'msg_model.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class GroupPage extends StatefulWidget {
@@ -15,9 +15,9 @@ class GroupPage extends StatefulWidget {
 
 class _GroupPageState extends State<GroupPage> {
   IO.Socket? socket; //? serve a nonn accettare valori se null
-  List<MsgModel> listMessage =
+  List<MsgModel> listMsg =
       []; //conterrà i messaggi con che tipo di messaggio sono
-  TextEditingController messController = TextEditingController();
+  TextEditingController _messController = TextEditingController();
   bool _visible = true;
   bool fissa = false;
   @override //server per far scopearire un widget dopo x secondi
@@ -53,10 +53,9 @@ class _GroupPageState extends State<GroupPage> {
 
   void sendMsg(String msg, String mandante) {
     //da rcihaiamre quando premo l;'icona di invio
-    //inviamo la stringa msg
+    //inviamo un oggetto
     socket!.emit('sendMsg', {
-      //oggetto
-      "tipo": "ownMsg",
+      "type": "ownMsg",
       "msg": msg,
       "mandante": mandante,
     }); //sendMsg è l'evento, msg la stringa da inviare
@@ -65,49 +64,58 @@ class _GroupPageState extends State<GroupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Visibility(
-            visible: _visible,
-            replacement: const Text("Chat"),
-            child: Text("Benvenuto, ${widget.nomeUtente}",
-                style: const TextStyle(fontSize: 20)),
-          ),
+      appBar: AppBar(
+        title: Visibility(
+          visible: _visible,
+          replacement: const Text("Chat"),
+          child: Text("Benvenuto, ${widget.nomeUtente}",
+              style: const TextStyle(fontSize: 20)),
         ),
-        body: Column(
-          children: [
-            //elenco messaggi, quindi colonne
-            Expanded(
-              child: Container(),
-            ),
+      ),
+      body: Column(
+        children: [
+          //elenco messaggi, quindi colonne
+          Expanded(
+            child: Container(),
+          ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: TextField(
-                          controller: messController,
-                          decoration: const InputDecoration(
-                            hintText: "Scrivi un messaggio...",
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  width: 2,
-                                ),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(50))),
-                          ))),
-                  IconButton(
-                      onPressed: () {
-                        print(messController);
-                        print(widget.nomeUtente);
-                        sendMsg(messController.text, widget.nomeUtente);
-                      },
-                      icon: const Icon(Icons.send))
-                ],
-              ),
-            )
-          ],
-        ));
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _messController,
+                    decoration: InputDecoration(
+                      hintText: "Scrivi un messaggio...",
+                      border: const OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(50)),
+                        borderSide: BorderSide(
+                          width: 2,
+                        ),
+                      ),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          String messaggio = _messController.text;
+                          if
+                          sendMsg(_messController.text, widget.nomeUtente);
+                          _messController.clear();
+                        },
+                        icon: const Icon(
+                          Icons.send,
+                          color: Colors.green,
+                          size: 26,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
 //capisci come metterlo
