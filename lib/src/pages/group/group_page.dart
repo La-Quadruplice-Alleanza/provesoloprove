@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:myfirstapp/src/pages/foundation/msg_widget/other_msg_widget.dart';
 import 'package:myfirstapp/src/pages/foundation/msg_widget/own_msg_widget.dart';
+import 'package:myfirstapp/src/pages/group/chiavi_oggetto.dart';
+import 'package:uuid/uuid.dart';
 import 'msg_model.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -21,6 +23,7 @@ class _GroupPageState extends State<GroupPage> {
   IO.Socket? socket; //? serve a nonn accettare valori se null
   List<MsgModel> listMsg =
       []; //conterrà i messaggi con che tipo di messaggio sono
+  List<chiaviModel> listaChiavi = [];
   TextEditingController _messController = TextEditingController();
   bool _visible = true;
   bool fissa = false;
@@ -52,9 +55,10 @@ class _GroupPageState extends State<GroupPage> {
     socket!.connect();
     socket!.onConnect((_) {
       print("Client: Connesso");
+      sendChiavi("chiavi", widget.userId);
       //mettiamo in ascolto il client
       socket!.on("sendMsgServer", (msg) {
-        print(msg);
+        //print(msg);
         //compiliamo la lista con i messaggi ricevuti
         if (msg["uuid"] != widget.userId) {
           //se il messaggio è dello stesso userid non lo stampo (rischio che stampava in verde anche s enon ero io ad inviarlo)
@@ -66,6 +70,19 @@ class _GroupPageState extends State<GroupPage> {
         }
       });
     });
+  }
+
+  void sendChiavi(String chiavi, String userId) {
+    chiaviModel oggettoChiavi = chiaviModel(
+        type: "Chiavi",
+        uuid: widget
+            .userId); //mettiamo in una lista il contenuto degli oggetti rivecuti e inviati
+    listaChiavi.add(
+        oggettoChiavi); //possiamo visualizzarli nella gui estrandeli e visualizzandoli
+    socket!.emit('chiavi', {
+      "type": "chiavii",
+      "uuid": widget.userId,
+    }); //sendMsg è l'evento, msg la stringa da inviare
   }
 
   void sendMsg(String msg, String mandante) {
