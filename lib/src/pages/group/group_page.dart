@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myfirstapp/src/pages/foundation/msg_widget/other_msg_widget.dart';
 import 'package:myfirstapp/src/pages/foundation/msg_widget/own_msg_widget.dart';
 import 'package:myfirstapp/src/pages/group/chiavi_oggetto.dart';
+import 'package:myfirstapp/src/rsa/rsa.dart';
 import 'package:uuid/uuid.dart';
 import 'msg_model.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -55,6 +56,9 @@ class _GroupPageState extends State<GroupPage> {
     socket!.connect();
     socket!.onConnect((_) {
       print("Client: Connesso");
+      var chiavi;
+      chiavi = generaChiavi();
+      print(chiavi[1]);
       sendChiavi("chiavi", widget.userId);
       //mettiamo in ascolto il client
       socket!.on("sendMsgServer", (msg) {
