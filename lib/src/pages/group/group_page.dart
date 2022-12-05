@@ -21,6 +21,11 @@ class GroupPage extends StatefulWidget {
 }
 
 class _GroupPageState extends State<GroupPage> {
+  var chiavi;
+  String provettaE = "";
+  String provettaD = "";
+  String provettaN = "";
+
   IO.Socket? socket; //? serve a nonn accettare valori se null
   List<MsgModel> listMsg =
       []; //conterrà i messaggi con che tipo di messaggio sono
@@ -56,9 +61,13 @@ class _GroupPageState extends State<GroupPage> {
     socket!.connect();
     socket!.onConnect((_) {
       print("Client: Connesso");
-      var chiavi;
-      chiavi = generaChiavi();
-      print(chiavi[1]);
+      /*chiavi = GeneraChiavi().generaChiavi();
+      provettaE = chiavi[0].toString();
+      provettaD = chiavi[1].toString();
+      provettaN = chiavi[2].toString();*/
+      provettaE = BigInt.from(10).toString();
+      provettaD = BigInt.from(20).toString();
+      provettaN = BigInt.from(30).toString();
       sendChiavi("chiavi", widget.userId);
       //mettiamo in ascolto il client
       socket!.on("sendMsgServer", (msg) {
@@ -79,13 +88,17 @@ class _GroupPageState extends State<GroupPage> {
   void sendChiavi(String chiavi, String userId) {
     chiaviModel oggettoChiavi = chiaviModel(
         type: "Chiavi",
-        uuid: widget
-            .userId); //mettiamo in una lista il contenuto degli oggetti rivecuti e inviati
+        uuid: widget.userId,
+        chiavePubE: provettaE,
+        chiavePubN:
+            provettaN); //mettiamo in una lista il contenuto degli oggetti rivecuti e inviati
     listaChiavi.add(
         oggettoChiavi); //possiamo visualizzarli nella gui estrandeli e visualizzandoli
     socket!.emit('chiavi', {
       "type": "chiavii",
       "uuid": widget.userId,
+      "chiavePubE": provettaE,
+      "chiavePubN": provettaN
     }); //sendMsg è l'evento, msg la stringa da inviare
   }
 
